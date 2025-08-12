@@ -1,0 +1,5 @@
+
+dependencies {
+    //eureka 의존성
+    implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-server:4.2.0'
+}
