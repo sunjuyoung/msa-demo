@@ -168,46 +168,9 @@
 - Redis
 - Database (MySQL/PostgreSQL)
 
-### 1. 프로젝트 클론
 
-```bash
-git clone <repository-url>
-cd sun-board
-```
 
-### 2. 의존성 설치
 
-```bash
-./gradlew build
-```
-
-### 3. 서비스 실행 순서
-
-```bash
-# 1. Eureka Server 시작
-./gradlew :service:eureka:bootRun
-
-# 2. API Gateway 시작
-./gradlew :service:apigateway:bootRun
-
-# 3. 각 마이크로서비스 시작
-./gradlew :service:member:bootRun
-./gradlew :service:article:bootRun
-./gradlew :service:comment:bootRun
-# ... 기타 서비스들
-```
-
-### 4. 서비스 확인
-
-- Eureka Dashboard: http://localhost:8761
-- API Gateway: http://localhost:8080
-
-## 📊 API 문서
-
-각 서비스별 API 문서는 다음 엔드포인트에서 확인할 수 있습니다:
-
-- Swagger UI: `http://localhost:{port}/swagger-ui.html`
-- API Docs: `http://localhost:{port}/v3/api-docs`
 
 ## 🔄 이벤트 기반 통신
 
@@ -253,47 +216,3 @@ cd sun-board
 - **비동기 처리**: 이벤트 기반 비동기 메시지 처리
 - **데이터베이스 최적화**: JPA 인덱싱 및 쿼리 최적화
 
-## 🧪 테스트
-
-```bash
-# 전체 테스트 실행
-./gradlew test
-
-# 특정 서비스 테스트
-./gradlew :service:member:test
-./gradlew :service:article:test
-```
-
-## 📝 개발 가이드라인
-
-### 코드 스타일
-
-- Java 21 기능 활용
-- Lombok을 통한 보일러플레이트 코드 최소화
-- JPA 엔티티는 불변 객체로 설계
-
-### 아키텍처 원칙
-
-- **단일 책임 원칙**: 각 서비스는 하나의 도메인에 집중
-- **느슨한 결합**: 이벤트 기반 통신으로 서비스 간 의존성 최소화
-- **고가용성**: 장애 격리 및 복구 메커니즘 구현
-
-## 🤝 기여하기
-
-1. Fork the Project
-2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the Branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-## 📄 라이선스
-
-이 프로젝트는 MIT 라이선스 하에 배포됩니다. 자세한 내용은 `LICENSE` 파일을 참조하세요.
-
-## 📞 문의
-
-프로젝트에 대한 문의사항이나 제안사항이 있으시면 이슈를 생성해 주세요.
-
----
-
-**Sun Board** - 마이크로서비스로 구축된 현대적인 게시판 시스템 🌞
