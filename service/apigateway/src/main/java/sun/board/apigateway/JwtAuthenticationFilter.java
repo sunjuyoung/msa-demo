@@ -11,9 +11,13 @@ import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFac
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.server.PathContainer;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Component;
+import org.springframework.util.AntPathMatcher;
 import org.springframework.web.server.ServerWebExchange;
+import org.springframework.web.util.pattern.PathPattern;
+import org.springframework.web.util.pattern.PathPatternParser;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
@@ -27,23 +31,17 @@ public class JwtAuthenticationFilter implements GlobalFilter {
 
     @Value("${jwt.secretKey}")
     private String jwtSecret;
+    private static final AntPathMatcher pathMatcher = new AntPathMatcher();
 
-    private static final List<Pattern> WHITELIST_PATHS = List.of(
-            Pattern.compile("^/member/create$"),
-            Pattern.compile("^/member/doLogin$"),
-            Pattern.compile("^/member/refresh-token$"),
-            Pattern.compile("^/articles/.*$"),
-            Pattern.compile("^/product/.*$"),
-            Pattern.compile("^/article-views/.*$"),
-            //hot-articles/
-            Pattern.compile("^/hot-articles/.*$"),
-            // /article-read-service/* 에서 제공하는 API는 모두 허용
-            Pattern.compile("^/article-read/.*$"),
-            Pattern.compile("^/payments/.*$")
-
-
-
-
+    private static final List<String> WHITELIST_PATHS = List.of(
+            "/member/**",
+            "/articles/**",           // ** 사용으로 하위 경로 모두 포함
+            "/product/**",
+            "/article-views/**",
+            "/hot-articles/**",
+            "/article-read/**",
+            "/payments/**",
+            "/actuator/**"            // Actuator 엔드포인트
     );
 
     @Override
@@ -78,9 +76,10 @@ public class JwtAuthenticationFilter implements GlobalFilter {
         return chain.filter(exchange.mutate().request(mutatedRequest).build());
     }
 
+
     private boolean isWhitelisted(String path) {
         return WHITELIST_PATHS.stream()
-                .anyMatch(pattern -> pattern.matcher(path).matches());
+                .anyMatch(pattern -> pathMatcher.match(pattern, path));
     }
 
     private String extractToken(ServerHttpRequest request) {

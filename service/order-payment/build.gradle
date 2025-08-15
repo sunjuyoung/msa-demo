@@ -7,18 +7,14 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     runtimeOnly 'com.mysql:mysql-connector-j'
 
-    //security
-    //implementation 'org.springframework.boot:spring-boot-starter-security'
 
-    //	jwt토큰 관련 라이브러리 추가
-    implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
-    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5'
-    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5'  // JSON 처리에 필요
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
 
     //eureka 의존성
     implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
+    implementation 'org.springframework.cloud:spring-cloud-starter-loadbalancer'
+
 
     implementation project(':common:snowflake')
 
 }
-
