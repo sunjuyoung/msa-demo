@@ -15,7 +15,7 @@ public class OrderingController {
 
     @PostMapping("/create")
     public ApiResponse orderCreate(@RequestBody OrderCreateDto dto,  @RequestHeader("X-User-Id") String userId) {
-        Long result = orderingService.orderCreate(dto, userId);
+        Long result = orderingService.orderCreateFeign(dto, userId);
         return ApiResponse.success(result);
     }
 }

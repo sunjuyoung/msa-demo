@@ -17,7 +17,7 @@ include 'service:article-read'
 include 'service:eureka'
 
 
-include 'service:payment'
+//include 'service:payment'
 include 'service:product'
 
 include 'service:order-payment'
