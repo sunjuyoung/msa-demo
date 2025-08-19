@@ -42,9 +42,6 @@ public class Product extends BaseTime {
         if (stockQuantity < 0) {
             throw new IllegalArgumentException("감소할 재고는 0보다 작을 수 없습니다.");
         }
-        if (this.stockQuantity < stockQuantity) {
-            throw new IllegalArgumentException("현재 재고보다 많은 수량을 감소시킬 수 없습니다.");
-        }
         this.stockQuantity = this.stockQuantity - stockQuantity;
     }
 

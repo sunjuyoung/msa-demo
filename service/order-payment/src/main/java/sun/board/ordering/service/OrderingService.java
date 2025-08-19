@@ -2,6 +2,7 @@ package sun.board.ordering.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -19,15 +20,20 @@ public class OrderingService {
     private final WebClient productWebClient;
     private final OrderingRepository orderingRepository;
     private final ProductFeign productFeign;
+    private final KafkaTemplate<String, Object> kafkaTemplate;
+
+    private final String DECREASE_STOCK_TOPIC = "decrease-stock-topic"; // 카프카 토픽 이름
 
     public OrderingService(
             @Qualifier("productWebClient") WebClient productWebClient,
             OrderingRepository orderingRepository,
-            ProductFeign productFeign)
+            ProductFeign productFeign,
+            KafkaTemplate<String, Object> kafkaTemplate)
     {
         this.productWebClient = productWebClient;
         this.orderingRepository = orderingRepository;
         this.productFeign = productFeign;
+        this.kafkaTemplate = kafkaTemplate;
     }
 
 
@@ -56,7 +62,10 @@ public class OrderingService {
         ProductUpdateStockDto productUpdateStockDto
                 = ProductUpdateStockDto.productUpdateStockDto(dto.getProductId(), dto.getProductCount());
 
-        Long result = productFeign.decreaseStock(productUpdateStockDto);
+        // 카프카에 재고 감소 요청 전송(비동기 방식)
+        kafkaTemplate.send(DECREASE_STOCK_TOPIC,String.valueOf(productId), productUpdateStockDto);
+        //  재고 감소를 위한 Feign 클라이언트 호출(동기 방식)
+        //Long result = productFeign.decreaseStock(productUpdateStockDto);
 
         Ordering saved = orderingRepository.save(ordering);
 
