@@ -20,8 +20,29 @@ public class RedissonLockStock {
         String lockKey = "product-lock:" + productId;
         var lock = redissonClient.getLock(lockKey);
         try {
-            if (lock.tryLock(5, 10, TimeUnit.SECONDS)) {
+            if (lock.tryLock(5,  TimeUnit.SECONDS)) {
                 productService.productMinusStock(dto);
+            } else {
+                throw new LockAcquisitionFailedException("재고 lock 획득 실패");
+            }
+        }catch (InterruptedException e){
+            Thread.currentThread().interrupt(); // 스레드 인터럽트 상태 복구
+            throw new LockAcquisitionFailedException("락 획득 중 스레드 인터럽트 발생");
+
+        } finally {
+            if (lock.isHeldByCurrentThread()) {
+                lock.unlock();
+            }
+        }
+    }
+
+    public void increaseStock(ProductUpdateStockDto dto) {
+        Long productId = dto.getProductId();
+        String lockKey = "product-lock:" + productId;
+        var lock = redissonClient.getLock(lockKey);
+        try {
+            if (lock.tryLock(5,  TimeUnit.SECONDS)) {
+                productService.productPlusStock(dto);
             } else {
                 throw new LockAcquisitionFailedException("재고 lock 획득 실패");
             }
@@ -40,12 +61,19 @@ public class RedissonLockStock {
         String lockKey = "product-lock:" + productId;
         var lock = redissonClient.getLock(lockKey);
         try {
-            if (lock.tryLock()) {
-                ProductUpdateStockDto dto = new ProductUpdateStockDto(productId, quantity);
+            if (lock.tryLock(5, TimeUnit.SECONDS)) {
+                ProductUpdateStockDto dto = ProductUpdateStockDto.builder()
+                        .productId(productId)
+                        .stockQuantity(quantity)
+                        .build();
                 productService.productPlusStock(dto);
             } else {
-                throw new IllegalStateException("재고 잠금 실패");
+                throw new LockAcquisitionFailedException("재고 lock 획득 실패");
             }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt(); // 스레드 인터럽트 상태 복구
+            throw new LockAcquisitionFailedException("락 획득 중 스레드 인터럽트 발생");
+
         } finally {
             if (lock.isHeldByCurrentThread()) {
                 lock.unlock();

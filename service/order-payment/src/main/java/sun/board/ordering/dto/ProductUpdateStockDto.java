@@ -12,10 +12,12 @@ import lombok.NoArgsConstructor;
 public class ProductUpdateStockDto {
     private Long productId;
     private Integer stockQuantity;
+    private Long orderId;
 
 
-    public static ProductUpdateStockDto productUpdateStockDto(Long productId, Integer stockQuantity) {
+    public static ProductUpdateStockDto productUpdateStockDto(Long productId, Integer stockQuantity, Long orderId) {
         return ProductUpdateStockDto.builder()
+                .orderId(orderId)
                 .productId(productId)
                 .stockQuantity(stockQuantity)
                 .build();

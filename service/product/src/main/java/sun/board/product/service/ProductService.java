@@ -38,7 +38,6 @@ public class ProductService {
         if (product.getStockQuantity() < dto.getStockQuantity()) {
             throw new StockInsufficientException("재고가 부족합니다.");
         }
-
         product.minusStockQuantity(dto.getStockQuantity());
         return product;
     }

@@ -7,14 +7,26 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
+import sun.board.product.entity.enums.ProductCategory;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 @Getter
+@Table(
+        name = "product",
+        indexes = {
+                @Index(name = "idx_name", columnList = "name"),
+                @Index(name = "idx_category_price", columnList = "category, price"),
+                @Index(name = "idx_category_name", columnList = "category, name")
+        }
+)
 public class Product extends BaseTime {
 
     @Id
@@ -25,15 +37,25 @@ public class Product extends BaseTime {
     private String name;
 
     @Column(name = "price", nullable = false)
-    private Integer price;
+    private BigDecimal price;
+
+    @Column(length = 1000)
+    private String description;
+
 
     @Column(name = "stock_quantity", nullable = false)
     private Integer stockQuantity;
 
-    @Column(name = "member_id", nullable = false)
-    private Long memberId;
-    //사용자 명을 자주 조회한다면 memberName 컬럼을 추가할 수도 있습니다,
-    //반정규화로 너무 잦은 memberService 호출을 피할 수 있습니다.
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private ProductCategory category;
+
+
+    // 상품 옵션들과의 연관관계
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL,
+            orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<ProductOption> productOptions = new ArrayList<>();
 
 
 
