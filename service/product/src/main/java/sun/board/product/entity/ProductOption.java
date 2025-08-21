@@ -47,7 +47,7 @@ public class ProductOption {
 
 
     @Enumerated(EnumType.STRING)
-    private OptionStatus status = OptionStatus.AVAILABLE; // AVAILABLE, OUT_OF_STOCK, DISCONTINUED
+    private OptionStatus status;// AVAILABLE, OUT_OF_STOCK, DISCONTINUED
 
 
 
@@ -63,9 +63,17 @@ public class ProductOption {
                 .stock(stock)
                 .status(OptionStatus.AVAILABLE)
                 .build();
-
-        product.getProductOptions().add(option); // 양방향 동기화
+        // 연관관계 설정
+        product.getProductOptions().add(option);
         return option;
+    }
+
+    //product set 메서드
+    public void setProduct(Product product) {
+        this.product = product;
+        if (product != null) {
+            product.getProductOptions().add(this);
+        }
     }
 
 

@@ -42,36 +42,29 @@ public class Product extends BaseTime {
     @Column(length = 1000)
     private String description;
 
-
-    @Column(name = "stock_quantity", nullable = false)
-    private Integer stockQuantity;
-
-
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private ProductCategory category;
 
 
     // 상품 옵션들과의 연관관계
+    @Builder.Default
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL,
             orphanRemoval = true, fetch = FetchType.LAZY)
     private List<ProductOption> productOptions = new ArrayList<>();
 
 
+    //생성자 빌더
 
+    public static Product createProduct(String name, BigDecimal price, String description,
+                                    ProductCategory category) {
 
-    public void minusStockQuantity(int stockQuantity) {
-        if (stockQuantity < 0) {
-            throw new IllegalArgumentException("감소할 재고는 0보다 작을 수 없습니다.");
-        }
-        this.stockQuantity = this.stockQuantity - stockQuantity;
-    }
-
-    public void plusStockQuantity(int stockQuantity) {
-        if (stockQuantity < 0) {
-            throw new IllegalArgumentException("증가할 재고는 0보다 작을 수 없습니다.");
-        }
-        this.stockQuantity = this.stockQuantity + stockQuantity;
+        return Product.builder()
+                .name(name)
+                .price(price)
+                .description(description)
+                .category(category)
+                .build();
     }
 
 }

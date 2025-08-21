@@ -21,7 +21,7 @@ public class RedissonLockStock {
         var lock = redissonClient.getLock(lockKey);
         try {
             if (lock.tryLock(5,  TimeUnit.SECONDS)) {
-                productService.productMinusStock(dto);
+               // productService.productMinusStock(dto);
             } else {
                 throw new LockAcquisitionFailedException("재고 lock 획득 실패");
             }
@@ -42,7 +42,7 @@ public class RedissonLockStock {
         var lock = redissonClient.getLock(lockKey);
         try {
             if (lock.tryLock(5,  TimeUnit.SECONDS)) {
-                productService.productPlusStock(dto);
+               // productService.productPlusStock(dto);
             } else {
                 throw new LockAcquisitionFailedException("재고 lock 획득 실패");
             }
@@ -64,9 +64,9 @@ public class RedissonLockStock {
             if (lock.tryLock(5, TimeUnit.SECONDS)) {
                 ProductUpdateStockDto dto = ProductUpdateStockDto.builder()
                         .productId(productId)
-                        .stockQuantity(quantity)
+                        .stock(quantity)
                         .build();
-                productService.productPlusStock(dto);
+                // productService.productPlusStock(dto);
             } else {
                 throw new LockAcquisitionFailedException("재고 lock 획득 실패");
             }

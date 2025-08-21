@@ -2,14 +2,19 @@ package sun.board.product.controller;
 
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import sun.board.product.dto.ProductRegisterDto;
-import sun.board.product.dto.ProductResDto;
-import sun.board.product.dto.ProductUpdateStockDto;
-import sun.board.product.entity.Product;
+import sun.board.product.dto.request.ProductCreateRequest;
+import sun.board.product.dto.request.ProductSearchRequest;
+import sun.board.product.dto.response.ProductDetailResponse;
+import sun.board.product.entity.enums.ProductCategory;
+import sun.board.product.entity.enums.ProductColor;
 import sun.board.product.service.ProductService;
+
+import java.math.BigDecimal;
+import java.util.List;
 
 @RestController
 @RequestMapping("/product")
@@ -18,30 +23,78 @@ public class ProductController {
 
     private final ProductService productService;
 
+
+    @GetMapping
+    public ResponseEntity<Page<ProductDetailResponse>> getProductList(
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) ProductCategory category,
+            @RequestParam(required = false) BigDecimal minPrice,
+            @RequestParam(required = false) BigDecimal maxPrice,
+            @RequestParam(required = false) List<ProductColor> colors,
+            @RequestParam(required = false) List<Integer> sizes,
+            @RequestParam(required = false) Boolean inStock,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "DESC") String sortDirection) {
+
+        ProductSearchRequest searchRequest = ProductSearchRequest.builder()
+                .name(name)
+                .category(category)
+                .minPrice(minPrice)
+                .maxPrice(maxPrice)
+                .colors(colors)
+                .sizes(sizes)
+                .inStock(inStock)
+                .page(page)
+                .size(size)
+                .sortBy(sortBy)
+                .sortDirection(sortDirection)
+                .build();
+        searchRequest.setOffset(page * size);
+        Page<ProductDetailResponse> result = productService.getProductList(searchRequest);
+        return ResponseEntity.ok(result);
+    }
+
+
+
+
+
+
+
+
+
     @PostMapping("/create")
-    public ResponseEntity<?> productCreate(ProductRegisterDto dto, @RequestHeader("X-User-Id") String userId) {
-        Product product = productService.productCreate(dto,userId);
-        return new ResponseEntity<>(product.getId(), HttpStatus.CREATED);
+    public ResponseEntity<?> productCreate(@RequestBody ProductCreateRequest dto, @RequestHeader("X-User-Id") String userId) {
+        Long id = productService.ProductCreateAndReturnId(dto,userId);
+        return new ResponseEntity<>(id, HttpStatus.CREATED);
     }
 
 
     @GetMapping("/{id}")
-    public ResponseEntity<ProductResDto> productDetail(@PathVariable("id") Long id)  {
+    public ResponseEntity<ProductDetailResponse> productDetail(@PathVariable("id") Long id)  {
         // Thread.sleep(4000L);
-        ProductResDto dto = productService.productDetail(id);
+        ProductDetailResponse dto = productService.productDetail(id);
         return new ResponseEntity<>(dto, HttpStatus.OK);
     }
 
-
-    @PutMapping("/decreaseStock")
-    public ResponseEntity<Long> productDecreaseStock(@RequestBody ProductUpdateStockDto dto) {
-        Product product = productService.productMinusStock(dto);
-        return new ResponseEntity<>(product.getId(), HttpStatus.OK);
+    @GetMapping("/list")
+    public ResponseEntity< List<ProductDetailResponse>> productList() {
+        List<ProductDetailResponse> products = productService.getProducts();
+        return new ResponseEntity<>(products, HttpStatus.OK);
     }
 
-    @PutMapping("/increaseStock")
-    public ResponseEntity<Long> productIncreaseStock(@RequestBody ProductUpdateStockDto dto) {
-        Product product = productService.productPlusStock(dto);
-        return new ResponseEntity<>(product.getId(), HttpStatus.OK);
-    }
+//
+//
+//    @PutMapping("/decreaseStock")
+//    public ResponseEntity<Long> productDecreaseStock(@RequestBody ProductUpdateStockDto dto) {
+//        Product product = productService.productMinusStock(dto);
+//        return new ResponseEntity<>(product.getId(), HttpStatus.OK);
+//    }
+//
+//    @PutMapping("/increaseStock")
+//    public ResponseEntity<Long> productIncreaseStock(@RequestBody ProductUpdateStockDto dto) {
+//        Product product = productService.productPlusStock(dto);
+//        return new ResponseEntity<>(product.getId(), HttpStatus.OK);
+//    }
 }

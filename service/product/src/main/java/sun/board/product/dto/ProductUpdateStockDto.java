@@ -11,6 +11,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ProductUpdateStockDto {
     private Long productId;
-    private Integer stockQuantity;
+    private Integer stock;
+    private String color;
+    private Integer size;
     private Long orderId; // 주문 ID, 주문 상태 변경 시 사용
 }

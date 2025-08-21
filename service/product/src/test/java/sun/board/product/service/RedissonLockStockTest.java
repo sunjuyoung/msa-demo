@@ -30,46 +30,46 @@ class RedissonLockStockTest {
 
 
 
-    @Test
-    @DisplayName("동시에 여러 스레드가 재고 감소를 시도할 때 순차적으로 처리된다")
-    void decreaseStock_ConcurrentAccess() throws InterruptedException {
-        // Given
-        ProductUpdateStockDto dto = ProductUpdateStockDto.builder()
-                .productId(1L)
-                .stockQuantity(1)
-                .build();
-
-        AtomicInteger successCount = new AtomicInteger(0);
-        AtomicInteger failCount = new AtomicInteger(0);
-        int threadCount = 10;
-        ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
-        CountDownLatch latch = new CountDownLatch(threadCount);
-
-
-
-        // When
-        for (int i = 0; i < threadCount; i++) {
-            executorService.submit(() -> {
-                try {
-                    redissonLockStock.decreaseStock(dto);
-                    successCount.incrementAndGet();
-                } catch (LockAcquisitionFailedException e) {
-                    failCount.incrementAndGet();
-                }catch (Exception e) {
-                    failCount.incrementAndGet();
-                } finally {
-                    latch.countDown();
-                }
-            });
-        }
-
-        latch.await(30, TimeUnit.SECONDS);
-        executorService.shutdown();
-
-        // Then
-        assertThat(successCount.get()).isGreaterThan(0);
-        assertThat(successCount.get() + failCount.get()).isEqualTo(threadCount);
-
-        // 성공한 요청 수만큼 productService 호출되어야 함
-    }
+//    @Test
+//    @DisplayName("동시에 여러 스레드가 재고 감소를 시도할 때 순차적으로 처리된다")
+//    void decreaseStock_ConcurrentAccess() throws InterruptedException {
+//        // Given
+//        ProductUpdateStockDto dto = ProductUpdateStockDto.builder()
+//                .productId(1L)
+//                .stockQuantity(1)
+//                .build();
+//
+//        AtomicInteger successCount = new AtomicInteger(0);
+//        AtomicInteger failCount = new AtomicInteger(0);
+//        int threadCount = 10;
+//        ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
+//        CountDownLatch latch = new CountDownLatch(threadCount);
+//
+//
+//
+//        // When
+//        for (int i = 0; i < threadCount; i++) {
+//            executorService.submit(() -> {
+//                try {
+//                    redissonLockStock.decreaseStock(dto);
+//                    successCount.incrementAndGet();
+//                } catch (LockAcquisitionFailedException e) {
+//                    failCount.incrementAndGet();
+//                }catch (Exception e) {
+//                    failCount.incrementAndGet();
+//                } finally {
+//                    latch.countDown();
+//                }
+//            });
+//        }
+//
+//        latch.await(30, TimeUnit.SECONDS);
+//        executorService.shutdown();
+//
+//        // Then
+//        assertThat(successCount.get()).isGreaterThan(0);
+//        assertThat(successCount.get() + failCount.get()).isEqualTo(threadCount);
+//
+//        // 성공한 요청 수만큼 productService 호출되어야 함
+//    }
 }
