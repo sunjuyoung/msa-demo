@@ -198,14 +198,15 @@ public class ProductService {
                 .build();
     }
 
-    public Product productMinusStock(ProductUpdateStockDto dto) {
+    public Long productMinusStock(ProductUpdateStockDto dto) {
         Product product = productRepository.findById(dto.getProductId())
                 .orElseThrow(() -> new EntityNotFoundException("해당 상품이 존재하지 않습니다."));
+        ProductColor color = ProductColor.valueOf(dto.getColor().toUpperCase());
 
+        ProductOption productOption = productOptionRepository.findByProductIdAndColorAndSize(product.getId(), color, dto.getSize());
 
-
-
-        return product;
+        productOption.decreaseStock(dto.getStock());
+        return product.getId();
     }
 
 

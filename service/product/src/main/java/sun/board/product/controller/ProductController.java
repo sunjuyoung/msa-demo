@@ -6,6 +6,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import sun.board.product.dto.ProductUpdateStockDto;
 import sun.board.product.dto.request.ProductCreateRequest;
 import sun.board.product.dto.request.ProductSearchRequest;
 import sun.board.product.dto.response.ProductDetailResponse;
@@ -58,12 +59,6 @@ public class ProductController {
 
 
 
-
-
-
-
-
-
     @PostMapping("/create")
     public ResponseEntity<?> productCreate(@RequestBody ProductCreateRequest dto, @RequestHeader("X-User-Id") String userId) {
         Long id = productService.ProductCreateAndReturnId(dto,userId);
@@ -86,12 +81,12 @@ public class ProductController {
 
 //
 //
-//    @PutMapping("/decreaseStock")
-//    public ResponseEntity<Long> productDecreaseStock(@RequestBody ProductUpdateStockDto dto) {
-//        Product product = productService.productMinusStock(dto);
-//        return new ResponseEntity<>(product.getId(), HttpStatus.OK);
-//    }
-//
+    @PutMapping("/decreaseStock")
+    public ResponseEntity<Long> productDecreaseStock(@RequestBody ProductUpdateStockDto dto) {
+        Long id = productService.productMinusStock(dto);
+        return new ResponseEntity<>( id, HttpStatus.OK);
+    }
+
 //    @PutMapping("/increaseStock")
 //    public ResponseEntity<Long> productIncreaseStock(@RequestBody ProductUpdateStockDto dto) {
 //        Product product = productService.productPlusStock(dto);

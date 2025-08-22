@@ -21,7 +21,7 @@ public class RedissonLockStock {
         var lock = redissonClient.getLock(lockKey);
         try {
             if (lock.tryLock(5,  TimeUnit.SECONDS)) {
-               // productService.productMinusStock(dto);
+                productService.productMinusStock(dto);
             } else {
                 throw new LockAcquisitionFailedException("재고 lock 획득 실패");
             }
