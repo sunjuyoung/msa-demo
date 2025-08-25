@@ -1,6 +1,7 @@
-package sun.board.common.event.coupon;
+package sun.board.coupon.event;
 
 import lombok.*;
+import sun.board.coupon.entity.CouponType;
 
 import java.time.LocalDateTime;
 
@@ -12,6 +13,7 @@ import java.time.LocalDateTime;
 public class CouponIssueEvent {
     private Long couponId;
     private Long userId;
+    private CouponType couponType;
     private LocalDateTime requestedAt;
     private String requestId; // idempotency 보조(선택)
 }

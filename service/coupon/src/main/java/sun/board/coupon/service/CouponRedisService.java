@@ -20,16 +20,6 @@ public class CouponRedisService {
         stringRedisTemplate.opsForValue().decrement(key);
     }
 
-    public boolean addIssuedUser(Long couponId, Long userId) {
-        // 중복 발급 방지용(선택)
-        return Boolean.TRUE.equals(
-                stringRedisTemplate.opsForSet().add(usersKey(couponId), String.valueOf(userId))
-        );
-    }
-
-    public void removeIssuedUser(Long couponId, Long userId) {
-        stringRedisTemplate.opsForSet().remove(usersKey(couponId), String.valueOf(userId));
-    }
 
     private String issuedKey(Long couponId) { return "coupon:%d:issued".formatted(couponId); }
     private String usersKey(Long couponId) { return "coupon:%d:users".formatted(couponId); }

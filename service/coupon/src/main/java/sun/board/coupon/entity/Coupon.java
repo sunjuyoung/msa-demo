@@ -18,13 +18,13 @@ public class Coupon {
     private Long id;
 
     @Enumerated(EnumType.STRING)
-    private CouponType type; // 가입용 / 이벤트용
+    private CouponType type; // SIGNUP / EVENT
 
     // 쿠폰 코드 (이벤트, 가입 축하 등 구분)
     @Column(nullable = false, unique = true, length = 50)
     private String code;
 
-    // 할인 금액 (정액 할인)
+    // 할인 금액
     @Column(nullable = false)
     private Integer discountAmount;
 
@@ -32,9 +32,8 @@ public class Coupon {
     @Column(nullable = false)
     private Integer minOrderAmount;
 
-    // 유효기간
-    @Column(nullable = false)
-    private LocalDateTime expirationDate;
+    @Column(nullable=false) private LocalDateTime startDate;
+    @Column(nullable=false) private LocalDateTime endDate;
 
     // 총 발급 수량 (선착순 이벤트용)
     @Column(nullable = false)
@@ -50,9 +49,11 @@ public class Coupon {
     @Column(nullable = false)
     private LocalDateTime updatedAt;
 
-    // ==== 비즈니스 메서드 ====
+
+    // ==== 비즈니스 로직 ====
     public boolean isExpired() {
-        return LocalDateTime.now().isAfter(expirationDate);
+        LocalDateTime now = LocalDateTime.now();
+        return now.isAfter(endDate);
     }
 
     public void decreaseQuantity() {
