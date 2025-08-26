@@ -52,7 +52,6 @@ public class CouponIssueConsumer {
             couponIssueAppService.issueToUser(userId, coupon);
 
         }catch (AlreadyIssuedException e){
-
             log.info("coupon-issue-consumer already issued");
              couponRedisService.decrIssuedCount(couponId);
         }catch (DataIntegrityViolationException e){

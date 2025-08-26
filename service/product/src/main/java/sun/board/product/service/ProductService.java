@@ -2,18 +2,18 @@ package sun.board.product.service;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import sun.board.product.dto.ProductUpdateStockDto;
 import sun.board.product.dto.request.ProductCreateRequest;
 import sun.board.product.dto.request.ProductOptionCreateRequest;
 import sun.board.product.dto.request.ProductSearchRequest;
-import sun.board.product.dto.response.ProductDetailResponse;
-import sun.board.product.dto.response.ProductOptionResponse;
+import sun.board.product.dto.response.*;
+import sun.board.product.dto.response.list.PageResult;
+import sun.board.product.dto.response.list.ProductListItemResponse;
+import sun.board.product.dto.response.list.ProductOptionRow;
+import sun.board.product.dto.response.list.ProductRow;
 import sun.board.product.entity.Product;
 import sun.board.product.entity.ProductOption;
 import sun.board.product.entity.enums.OptionStatus;
@@ -25,6 +25,7 @@ import sun.board.product.repository.ProductRepository;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @Transactional
 @RequiredArgsConstructor
@@ -40,43 +41,77 @@ public class ProductService {
      * @param searchRequest
      * @return
      */
-    public Page<ProductDetailResponse> getProductList(ProductSearchRequest searchRequest) {
+    @Transactional(readOnly = true)
+    public PageResult<ProductListItemResponse> getProductList(ProductSearchRequest searchRequest) {
         // 전체 개수 조회
-        searchRequest.setOffset(searchRequest.getPage() * searchRequest.getSize());
-        int totalCount = productMapper.countProducts(searchRequest);
+        int offset = Math.max(0, (searchRequest.getPage() - 1)) * searchRequest.getSize();
 
-        // 상품 리스트 조회 (이미 MyBatis에서 색상별로 그룹핑됨)
-        List<ProductDetailResponse> products = productMapper.findProductsWithOptions(searchRequest);
-
-        // 상품별로 옵션 그룹핑 처리
-        Map<Long, ProductDetailResponse> productMap = new LinkedHashMap<>();
-
-        for (ProductDetailResponse product : products) {
-            Long productId = product.getProductId();
-
-            if (!productMap.containsKey(productId)) {
-                // 첫 번째로 발견된 상품인 경우
-                productMap.put(productId, ProductDetailResponse.builder()
-                        .productId(product.getProductId())
-                        .name(product.getName())
-                        .description(product.getDescription())
-                        .price(product.getPrice())
-                        .category(product.getCategory())
-                        .options(new ArrayList<>())
-                        .build());
-            }
-
-            // 옵션이 있는 경우 추가
-            if (product.getOptions() != null && !product.getOptions().isEmpty()) {
-                productMap.get(productId).getOptions().addAll(product.getOptions());
-            }
+        searchRequest.setOffset(offset);
+        // 1) 총 상품 수
+        int total = productMapper.countProducts(
+                searchRequest.getName(),
+                searchRequest.getCategory() != null ? searchRequest.getCategory().name() : null,
+                searchRequest.getMinPrice() != null ? searchRequest.getMinPrice().intValue() : null,
+                searchRequest.getMaxPrice() != null ? searchRequest.getMaxPrice().intValue() : null
+        );
+        if (total == 0) {
+            return new PageResult<>(List.of(), 0, searchRequest.getPage(), searchRequest.getSize());
         }
 
-        List<ProductDetailResponse> result = new ArrayList<>(productMap.values());
+        // 2) 현재 페이지의 상품 id 목록
+        List<Long> pageIds = productMapper.findProductPageIds(
+                offset, searchRequest.getSize(),
+                searchRequest.getName(),
+                searchRequest.getCategory() != null ? searchRequest.getCategory().name() : null,
+                searchRequest.getMinPrice() != null ? searchRequest.getMinPrice().intValue() : null,
+                searchRequest.getMaxPrice() != null ? searchRequest.getMaxPrice().intValue() : null);
 
-        // 페이지 객체 생성
-        Pageable pageable = PageRequest.of(searchRequest.getPage(), searchRequest.getSize());
-        return new PageImpl<>(result, pageable, totalCount);
+        if (pageIds.isEmpty()) {
+            return new PageResult<>(List.of(), total, searchRequest.getPage(), searchRequest.getSize());
+        }
+
+        // 3) 상품/옵션 일괄 조회
+        List<ProductRow> products = productMapper.findProductsByIds(pageIds);
+        List<ProductOptionRow> options = productMapper.findOptionsByProductIds(pageIds);
+
+        // 4) productId -> 옵션 목록
+        Map<Long, List<ProductOptionRow>> optionsByProduct = options.stream()
+                .collect(Collectors.groupingBy(ProductOptionRow::getProductId, LinkedHashMap::new, Collectors.toList()));
+
+        // 5) 최종 응답 조립 (중복 제거 + 정렬)
+        List<ProductListItemResponse> content = new ArrayList<>(products.size());
+        for (ProductRow p : products) {
+            List<ProductOptionRow> pos = optionsByProduct.getOrDefault(p.getProductId(), List.of());
+
+            // size: 정수 오름차순 / color: 소문자 알파벳 정렬
+            List<Integer> sizes = pos.stream()
+                    .map(ProductOptionRow::getSize)
+                    .filter(Objects::nonNull)
+                    .distinct()
+                    .sorted()
+                    .toList();
+
+            List<String> colors = pos.stream()
+                    .map(ProductOptionRow::getColor)
+                    .filter(Objects::nonNull)
+                    .map(String::toLowerCase)
+                    .distinct()
+                    .sorted()
+                    .toList();
+
+            content.add(ProductListItemResponse.builder()
+                    .productId(p.getProductId())
+                    .name(p.getName())
+                    .description(p.getDescription())
+                    .price(p.getPrice())
+                    .category(p.getCategory())
+                    .size(sizes)
+                    .color(colors)
+                    .build());
+        }
+
+        // 6) 페이지 결과 반환
+        return new PageResult<>(content, total, searchRequest.getPage(), searchRequest.getSize());
     }
 
 
@@ -84,7 +119,7 @@ public class ProductService {
     /**
      * 상품 리스트
      */
-    public List<ProductDetailResponse> getProducts() {
+    public List<ProductResponse> getProducts() {
 
         // 1. 상품 조회
         List<Product> products = productRepository.findAll();
@@ -101,7 +136,7 @@ public class ProductService {
                 .collect(Collectors.groupingBy(po -> po.getProduct().getId()));
 
         // 4. 각 상품 DTO 생성
-        List<ProductDetailResponse> result = products.stream()
+        List<ProductResponse> result = products.stream()
                 .map(product -> {
                     List<ProductOption> productOptions = optionsByProduct.getOrDefault(product.getId(), Collections.emptyList());
 
@@ -120,7 +155,7 @@ public class ProductService {
                                     .build())
                             .collect(Collectors.toList());
 
-                    return ProductDetailResponse.builder()
+                    return ProductResponse.builder()
                             .productId(product.getId())
                             .name(product.getName())
                             .description(product.getDescription())
@@ -172,20 +207,25 @@ public class ProductService {
                 productId, OptionStatus.AVAILABLE, 0
         );
 
-        // 색상별 사이즈 그룹화
-        LinkedHashMap<ProductColor, List<Integer>> colorToSizes = options.stream()
+        Map<String, List<OptionSizeWithStockDto>> colorMap = options.stream()
                 .collect(Collectors.groupingBy(
-                        ProductOption::getColor,
+                        o -> o.getColor().name(),
                         LinkedHashMap::new,
-                        Collectors.mapping(ProductOption::getSize, Collectors.toList())
+                        Collectors.mapping(
+                                o -> new OptionSizeWithStockDto(o.getSize(), o.getStock()),
+                                Collectors.toList()
+                        )
                 ));
 
         // DTO 변환
-        List<ProductOptionResponse> optionDtos = colorToSizes.entrySet().stream()
-                .map(e -> ProductOptionResponse.builder()
-                        .color(String.valueOf(e.getKey()))
-                        .sizes(e.getValue())
+        List<ProductOptionWithStockDto> optionDtos = colorMap.entrySet().stream()
+                .map(e -> ProductOptionWithStockDto.builder()
+                        .color(e.getKey())
+                        .sizes(e.getValue().stream()
+                                .sorted(Comparator.comparing(OptionSizeWithStockDto::getSize))
+                                .collect(Collectors.toList()))
                         .build())
+                .sorted(Comparator.comparing(ProductOptionWithStockDto::getColor))
                 .collect(Collectors.toList());
 
         return ProductDetailResponse.builder()

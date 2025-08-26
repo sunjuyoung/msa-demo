@@ -40,8 +40,6 @@ public class CouponIssueAppService {
     public void getIssuedCount(Coupon coupon) {
         long issued = redisService.incrIssuedCount(coupon.getId());
         if (issued > coupon.getTotalQuantity()) {
-            // 초과 → 롤백
-            redisService.decrIssuedCount(coupon.getId());
             throw new CouponLimitExceededException("coupon issued out of stock");
         }
     }

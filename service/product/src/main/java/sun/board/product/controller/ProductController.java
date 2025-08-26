@@ -10,6 +10,9 @@ import sun.board.product.dto.ProductUpdateStockDto;
 import sun.board.product.dto.request.ProductCreateRequest;
 import sun.board.product.dto.request.ProductSearchRequest;
 import sun.board.product.dto.response.ProductDetailResponse;
+import sun.board.product.dto.response.ProductResponse;
+import sun.board.product.dto.response.list.PageResult;
+import sun.board.product.dto.response.list.ProductListItemResponse;
 import sun.board.product.entity.enums.ProductCategory;
 import sun.board.product.entity.enums.ProductColor;
 import sun.board.product.service.ProductService;
@@ -26,7 +29,7 @@ public class ProductController {
 
 
     @GetMapping
-    public ResponseEntity<Page<ProductDetailResponse>> getProductList(
+    public ResponseEntity< PageResult<ProductListItemResponse>  > getProductList(
             @RequestParam(required = false) String name,
             @RequestParam(required = false) ProductCategory category,
             @RequestParam(required = false) BigDecimal minPrice,
@@ -35,7 +38,7 @@ public class ProductController {
             @RequestParam(required = false) List<Integer> sizes,
             @RequestParam(required = false) Boolean inStock,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "createdAt") String sortBy,
             @RequestParam(defaultValue = "DESC") String sortDirection) {
 
@@ -52,9 +55,8 @@ public class ProductController {
                 .sortBy(sortBy)
                 .sortDirection(sortDirection)
                 .build();
-        searchRequest.setOffset(page * size);
-        Page<ProductDetailResponse> result = productService.getProductList(searchRequest);
-        return ResponseEntity.ok(result);
+        PageResult<ProductListItemResponse> productList = productService.getProductList(searchRequest);
+        return ResponseEntity.ok(productList);
     }
 
 
@@ -74,8 +76,8 @@ public class ProductController {
     }
 
     @GetMapping("/list")
-    public ResponseEntity< List<ProductDetailResponse>> productList() {
-        List<ProductDetailResponse> products = productService.getProducts();
+    public ResponseEntity< List<ProductResponse>> productList() {
+        List<ProductResponse> products = productService.getProducts();
         return new ResponseEntity<>(products, HttpStatus.OK);
     }
 

@@ -21,7 +21,7 @@ public class CouponIssueController {
     }
 
     @PostMapping("/issue/signup")
-    public ResponseEntity<ApiResponse> issueSignupCoupon( @RequestParam("userId") Long userId) {
+    public ResponseEntity<ApiResponse> issueSignupCoupon(@RequestParam("userId") Long userId) {
        couponIssueFacade.issueSignupCoupon(userId);
         return ResponseEntity.ok(ApiResponse.success(userId));
     }

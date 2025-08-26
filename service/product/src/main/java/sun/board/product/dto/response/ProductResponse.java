@@ -8,15 +8,17 @@ import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 import java.util.List;
 
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class ProductDetailResponse {
+public class ProductResponse {
+
     private Long productId;
     private String name;
     private String description;
     private BigDecimal price;
     private String category;
-    private List<ProductOptionWithStockDto> options;
+    private List<ProductOptionResponse> options;
 }

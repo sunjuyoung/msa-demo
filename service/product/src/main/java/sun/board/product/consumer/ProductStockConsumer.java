@@ -27,12 +27,11 @@ public class ProductStockConsumer {
 
 
     @KafkaListener(topics = DECREASE_STOCK_TOPIC , containerFactory = "kafkaListenerContainerFactory")
-    public void stockConsumer(String message, Acknowledgment ack) {
+    public void stockConsumer(String message) {
         ProductUpdateStockDto dto = DataSerializer.deserialize(message, ProductUpdateStockDto.class);
         try {
             redissonLockStock.decreaseStock(dto);
             // 성공 시 다음 단계를 위한 이벤트 발행 (선택사항, 보통은 다음 서비스에서 바로 받음)
-            ack.acknowledge();
         } catch (StockInsufficientException e) {
             log.info("재고 부족: productId={}, message={}    ",dto.getProductId(), e.getMessage());
             kafkaTemplate.send(STOCK_STATUS_TOPIC, new StockEvent(dto.getProductId(),dto.getOrderId(),  "STOCK_INSUFFICIENT"));
