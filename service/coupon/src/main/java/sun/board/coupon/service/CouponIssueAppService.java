@@ -3,6 +3,7 @@ package sun.board.coupon.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import sun.board.coupon.dto.UserCouponDto;
 import sun.board.coupon.entity.Coupon;
 import sun.board.coupon.entity.UserCoupon;
 import sun.board.coupon.event.CouponIssueEvent;
@@ -12,6 +13,7 @@ import sun.board.coupon.repository.CouponRepository;
 import sun.board.coupon.repository.UserCouponRepository;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -22,6 +24,11 @@ public class CouponIssueAppService {
     private final CouponIssueProducer producer;
     private final UserCouponRepository userCouponRepository;
 
+
+    //발급된 쿠폰 조회 By userId
+    public List<UserCouponDto> getUserCoupons(Long userId) {
+        return userCouponRepository.findCouponsByUserId(userId);
+    }
 
     //회원가입 쿠폰 조회
     public Coupon getSignupCouponOrThrow() {

@@ -15,10 +15,10 @@ import java.util.List;
 @AllArgsConstructor
 public class ProductSearchRequest {
     private String name;
-    private ProductCategory category;
+    private String category;
     private BigDecimal minPrice;
     private BigDecimal maxPrice;
-    private List<ProductColor> colors;
+    private List<String> colors;
     private List<Integer> sizes;
     private Boolean inStock;
 

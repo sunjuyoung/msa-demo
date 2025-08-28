@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
 import sun.board.ordering.dto.OrderCreateDto;
+import sun.board.ordering.dto.OrderViewResponseDTO;
 import sun.board.ordering.dto.ProductDto;
 import sun.board.ordering.dto.ProductUpdateStockDto;
 import sun.board.ordering.entity.OrderStatus;
@@ -39,38 +40,49 @@ public class OrderingService {
 
 
     @Transactional
-    public Long orderCreateFeign(OrderCreateDto dto, String userId){
+    public OrderViewResponseDTO orderCreateFeign(OrderCreateDto dto){
 
         int quantity = dto.getProductCount();
         Long productId = dto.getProductId();
         //상품 조회
 
+
         ProductDto response = productFeign.getProductById(productId);
 
-        if(response.getStockQuantity() < quantity){
-            throw new StockInsufficientException("재고가 부족합니다.");
-        }
+//        if(response.getStockQuantity() < quantity){
+//            throw new StockInsufficientException("재고가 부족합니다.");
+//        }
         Ordering ordering = Ordering.builder()
                 .productId(dto.getProductId())
                 .quantity(dto.getProductCount())
-                .memberId(Long.parseLong(userId))
+                .memberId(dto.getUserId())
                 .orderStatus(OrderStatus.PENDING)
+                .totalPrice(dto.getTotalPrice())
                 .build();
 
 
         Ordering saved = orderingRepository.save(ordering);
         // 재고 감소 로직
-        ProductUpdateStockDto productUpdateStockDto
-                = ProductUpdateStockDto.productUpdateStockDto(
-                        dto.getProductId(),
-                        dto.getProductCount(),
-                        saved.getId()
-        );
+//        ProductUpdateStockDto productUpdateStockDto
+//                = ProductUpdateStockDto.productUpdateStockDto(
+//                        dto.getProductId(),
+//                        dto.getProductCount(),
+//                        saved.getId()
+        //);
 
         // 카프카에 재고 감소 요청 전송(비동기 방식)
-        kafkaTemplate.send(DECREASE_STOCK_TOPIC,String.valueOf(productId), productUpdateStockDto);
+       // kafkaTemplate.send(DECREASE_STOCK_TOPIC,String.valueOf(productId), productUpdateStockDto);
 
-        return saved.getId();
+        OrderViewResponseDTO orderViewResponseDTO = new OrderViewResponseDTO();
+        orderViewResponseDTO.setOrderId(saved.getId());
+        orderViewResponseDTO.setProductId(response.getProductId());
+        orderViewResponseDTO.setAmount(dto.getTotalPrice());
+        orderViewResponseDTO.setQuantity(dto.getProductCount());
+        orderViewResponseDTO.setColor(dto.getColor());
+        orderViewResponseDTO.setSize(dto.getSize());
+        orderViewResponseDTO.setOrderName(response.getName());
+
+        return orderViewResponseDTO;
     }
 
 //    @Transactional

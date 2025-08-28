@@ -18,7 +18,7 @@ dependencies {
     implementation 'org.redisson:redisson-spring-boot-starter:3.46.0'
 
     //eureka 의존성
-//    implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
+    implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
 //    implementation 'org.springframework.cloud:spring-cloud-starter-loadbalancer'
 
 

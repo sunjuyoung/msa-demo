@@ -2,6 +2,7 @@ package sun.board.product.controller;
 
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +21,7 @@ import sun.board.product.service.ProductService;
 import java.math.BigDecimal;
 import java.util.List;
 
+@Slf4j
 @RestController
 @RequestMapping("/product")
 @RequiredArgsConstructor
@@ -31,16 +33,17 @@ public class ProductController {
     @GetMapping
     public ResponseEntity< PageResult<ProductListItemResponse>  > getProductList(
             @RequestParam(required = false) String name,
-            @RequestParam(required = false) ProductCategory category,
+            @RequestParam(required = false) String category,
             @RequestParam(required = false) BigDecimal minPrice,
             @RequestParam(required = false) BigDecimal maxPrice,
-            @RequestParam(required = false) List<ProductColor> colors,
+            @RequestParam(required = false) List<String> colors,
             @RequestParam(required = false) List<Integer> sizes,
             @RequestParam(required = false) Boolean inStock,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "createdAt") String sortBy,
             @RequestParam(defaultValue = "DESC") String sortDirection) {
+
 
         ProductSearchRequest searchRequest = ProductSearchRequest.builder()
                 .name(name)

@@ -13,6 +13,7 @@ import sun.board.coupon.service.CouponIssueFacade;
 @RequestMapping("/coupons")
 public class CouponIssueController {
     private final CouponIssueFacade  couponIssueFacade;
+    private final CouponIssueAppService couponIssueAppService;
 
     @PostMapping("/{couponId}/issue/event")
     public ResponseEntity<ApiResponse> issueEventCoupon(@PathVariable Long couponId, @RequestParam("userId") Long userId) {
@@ -24,5 +25,10 @@ public class CouponIssueController {
     public ResponseEntity<ApiResponse> issueSignupCoupon(@RequestParam("userId") Long userId) {
        couponIssueFacade.issueSignupCoupon(userId);
         return ResponseEntity.ok(ApiResponse.success(userId));
+    }
+    //쿠폰 확인 By userId
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<ApiResponse> getUserCoupons(@PathVariable Long userId) {
+        return ResponseEntity.ok(ApiResponse.success(couponIssueAppService.getUserCoupons(userId)));
     }
 }

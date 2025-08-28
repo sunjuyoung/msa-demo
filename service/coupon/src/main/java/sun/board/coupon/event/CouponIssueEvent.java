@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
 public class CouponIssueEvent {
     private Long couponId;
     private Long userId;
+    private String name;
     private CouponType couponType;
     private LocalDateTime requestedAt;
     private String requestId; // idempotency 보조(선택)

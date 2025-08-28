@@ -24,6 +24,8 @@ public class Coupon {
     @Column(nullable = false, unique = true, length = 50)
     private String code;
 
+    private String couponName;
+
     // 할인 금액
     @Column(nullable = false)
     private Integer discountAmount;

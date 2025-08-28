@@ -5,8 +5,8 @@
 <mapper namespace="sun.board.product.mapper.ProductMapper">
 
     <!-- 공통 WHERE (상품 테이블 기준) -->
-    <sql id="where">
-        <where>
+    <sql id="filters">
+        <trim prefix="WHERE" prefixOverrides="AND|OR">
             <if test="name != null and name != ''">
                 AND p.name LIKE CONCAT('%', #{name}, '%')
             </if>
@@ -19,10 +19,31 @@
             <if test="maxPrice != null">
                 AND p.price &lt;= #{maxPrice}
             </if>
-            <!-- 옵션이 하나도 없는 상품 제외하고 싶다면 EXISTS 사용 (선택) -->
 
-        </where>
+            <!-- 옵션 필터 (조건이 없으면 통째로 빠짐) -->
+            <if test="(colors != null and !colors.isEmpty()) or (sizes != null and !sizes.isEmpty())">
+                AND EXISTS (
+                SELECT 1
+                FROM product_option po
+                WHERE po.product_id = p.id
+                <if test="colors != null and !colors.isEmpty()">
+                    <!-- 필요 시 UPPER로 대소문자 무시; 성능 중요하면 자바에서 미리 대문자화 권장 -->
+                    AND po.color IN
+                    <foreach collection="colors" item="c" open="(" separator="," close=")">
+                        #{c}
+                    </foreach>
+                </if>
+                <if test="sizes != null and !sizes.isEmpty()">
+                    AND po.size IN
+                    <foreach collection="sizes" item="s" open="(" separator="," close=")">
+                        #{s}
+                    </foreach>
+                </if>
+                )
+            </if>
+        </trim>
     </sql>
+
 
     <!-- 정렬: 최신 등록 우선 -->
     <sql id="orderBy">
@@ -33,7 +54,7 @@
     <select id="findProductPageIds" resultType="long">
         SELECT p.id
         FROM product p
-        <include refid="where"/>
+        <include refid="filters"/>
         <include refid="orderBy"/>
         LIMIT #{size} OFFSET #{offset}
     </select>
@@ -42,7 +63,7 @@
     <select id="countProducts" resultType="int">
         SELECT COUNT(*)
         FROM product p
-        <include refid="where"/>
+        <include refid="filters"/>
     </select>
 
     <!-- 3-3. 상품 기본정보 -->

@@ -33,15 +33,19 @@ public class JwtAuthenticationFilter implements GlobalFilter {
     private String jwtSecret;
     private static final AntPathMatcher pathMatcher = new AntPathMatcher();
 
+//    private static final List<String> WHITELIST_PATHS = List.of(
+//            "/member/**",
+//            "/articles/**",           // ** 사용으로 하위 경로 모두 포함
+//            "/product/**",
+//            "/article-views/**",
+//            "/hot-articles/**",
+//            "/article-read/**",
+//            "/payments/**",
+//            "/actuator/**"            // Actuator 엔드포인트
+//    );
+
     private static final List<String> WHITELIST_PATHS = List.of(
-            "/member/**",
-            "/articles/**",           // ** 사용으로 하위 경로 모두 포함
-            "/product/**",
-            "/article-views/**",
-            "/hot-articles/**",
-            "/article-read/**",
-            "/payments/**",
-            "/actuator/**"            // Actuator 엔드포인트
+            "/**"
     );
 
     @Override

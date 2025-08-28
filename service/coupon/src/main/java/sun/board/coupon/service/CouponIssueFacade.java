@@ -38,6 +38,7 @@ public class CouponIssueFacade {
         CouponIssueEvent event = CouponIssueEvent.builder()
                 .couponId(couponId)
                 .userId(userId)
+                .name(coupon.getCouponName())
                 .couponType(coupon.getType())
                 .requestedAt(LocalDateTime.now())
                 .build();
@@ -48,6 +49,7 @@ public class CouponIssueFacade {
             log.info( "쿠폰 발급 이벤트 전송 실패: {}", e.getMessage() );
         }
     }
+
 
 
 }

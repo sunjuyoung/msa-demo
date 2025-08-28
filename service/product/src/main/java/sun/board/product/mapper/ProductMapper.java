@@ -24,7 +24,9 @@ public interface ProductMapper {
             @Param("name") String name,
             @Param("category") String category,
             @Param("minPrice") Integer minPrice,
-            @Param("maxPrice") Integer maxPrice
+            @Param("maxPrice") Integer maxPrice,
+            @Param("sizes") List<Integer> sizes,
+            @Param("colors") List<String> colors
     );
 
     // 2-2. 총 상품 수 (페이지 계산용)
@@ -32,7 +34,9 @@ public interface ProductMapper {
             @Param("name") String name,
             @Param("category") String category,
             @Param("minPrice") Integer minPrice,
-            @Param("maxPrice") Integer maxPrice
+            @Param("maxPrice") Integer maxPrice,
+            @Param("sizes") List<Integer> sizes,
+            @Param("colors") List<String> colors
     );
 
     // 2-3. 위에서 뽑은 id 목록으로 상품 기본정보 일괄 조회

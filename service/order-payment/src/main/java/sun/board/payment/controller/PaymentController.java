@@ -8,9 +8,13 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import sun.board.payment.dto.request.CheckoutRequest;
+import sun.board.payment.dto.request.PaymentConfirmCommand;
 import sun.board.payment.dto.request.TossPaymentConfirmRequest;
 import sun.board.payment.dto.response.ApiResponse;
 import sun.board.payment.dto.response.PaymentConfirmResult;
+import sun.board.payment.service.CheckoutService;
+import sun.board.payment.service.PaymentConfirmFacade;
 
 @Slf4j
 @RestController
@@ -19,19 +23,33 @@ import sun.board.payment.dto.response.PaymentConfirmResult;
 public class PaymentController {
 
 
+    private final CheckoutService checkoutService;
+
+    // private final PaymentConfirmService confirmService;
+
+    private final PaymentConfirmFacade paymentConfirmFacade;
+
     @PostMapping("/checkout")
-    public String checkout() {
-        log.info("Checkout process initiated");
-        // Here you would typically call a service to handle the checkout logic
-        return "Checkout successful";
+    public ResponseEntity<ApiResponse<Long>> checkout(@RequestBody CheckoutRequest checkoutRequest) {
+        Long checkout = checkoutService.checkout(checkoutRequest);
+        return ResponseEntity.ok().body(new ApiResponse<>("success", HttpStatus.OK, checkout));
     }
 
-    @PostMapping("/confirm")
+    @RequestMapping("/confirm")
     public ResponseEntity<ApiResponse<PaymentConfirmResult>> confirmPayment(
             @RequestBody TossPaymentConfirmRequest request) {
-        log.info("Payment confirmation process initiated");
-        // Here you would typically call a service to handle the payment confirmation logic
 
-        return ResponseEntity.ok().body(new ApiResponse<>("success", HttpStatus.OK, null));
+        PaymentConfirmCommand paymentConfirmCommand = new PaymentConfirmCommand(
+
+                request.getPaymentKey(),
+                request.getOrderId(),
+                request.getAmount()
+
+        );
+
+        // PaymentConfirmResult confirm = confirmService.confirm(paymentConfirmCommand);
+        PaymentConfirmResult confirm = paymentConfirmFacade.confirmPayment(paymentConfirmCommand);
+
+        return ResponseEntity.ok().body(new ApiResponse<>("success", HttpStatus.OK, confirm));
     }
 }

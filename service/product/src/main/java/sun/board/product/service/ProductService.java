@@ -45,14 +45,23 @@ public class ProductService {
     public PageResult<ProductListItemResponse> getProductList(ProductSearchRequest searchRequest) {
         // 전체 개수 조회
         int offset = Math.max(0, (searchRequest.getPage() - 1)) * searchRequest.getSize();
+        List<String> normColors = null;
+        if (searchRequest.getColors() != null) {
+            normColors = searchRequest.getColors().stream()
+                    .filter(Objects::nonNull)
+                    .map(s -> s.toUpperCase(Locale.ROOT))
+                    .toList();
+        }
 
         searchRequest.setOffset(offset);
         // 1) 총 상품 수
         int total = productMapper.countProducts(
                 searchRequest.getName(),
-                searchRequest.getCategory() != null ? searchRequest.getCategory().name() : null,
+                searchRequest.getCategory() != null ? searchRequest.getCategory() : null,
                 searchRequest.getMinPrice() != null ? searchRequest.getMinPrice().intValue() : null,
-                searchRequest.getMaxPrice() != null ? searchRequest.getMaxPrice().intValue() : null
+                searchRequest.getMaxPrice() != null ? searchRequest.getMaxPrice().intValue() : null,
+                searchRequest.getSizes() != null ? searchRequest.getSizes() : null,
+                normColors != null ? normColors : null
         );
         if (total == 0) {
             return new PageResult<>(List.of(), 0, searchRequest.getPage(), searchRequest.getSize());
@@ -62,9 +71,13 @@ public class ProductService {
         List<Long> pageIds = productMapper.findProductPageIds(
                 offset, searchRequest.getSize(),
                 searchRequest.getName(),
-                searchRequest.getCategory() != null ? searchRequest.getCategory().name() : null,
+                searchRequest.getCategory() != null ? searchRequest.getCategory() : null,
                 searchRequest.getMinPrice() != null ? searchRequest.getMinPrice().intValue() : null,
-                searchRequest.getMaxPrice() != null ? searchRequest.getMaxPrice().intValue() : null);
+                searchRequest.getMaxPrice() != null ? searchRequest.getMaxPrice().intValue() : null,
+                searchRequest.getSizes() != null ? searchRequest.getSizes() : null,
+                normColors != null ? normColors : null
+
+        );
 
         if (pageIds.isEmpty()) {
             return new PageResult<>(List.of(), total, searchRequest.getPage(), searchRequest.getSize());

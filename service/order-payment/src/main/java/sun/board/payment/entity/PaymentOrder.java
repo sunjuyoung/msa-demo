@@ -46,8 +46,6 @@ public class PaymentOrder  {
     private Long productId; //상품 ID
 
 
-
-
     private int failedCount; //실패 횟수
     private int threshold; //실패 임계치
 
@@ -60,6 +58,7 @@ public class PaymentOrder  {
 
     public void setPaymentEvent(PaymentEvent paymentEvent) {
         this.paymentEvent = paymentEvent;
+        paymentEvent.getPaymentOrders().add(this);
     }
 
     public void setPaymentStatus(PaymentOrderStatus paymentOrderStatus) {
