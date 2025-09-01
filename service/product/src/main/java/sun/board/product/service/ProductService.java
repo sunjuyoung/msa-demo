@@ -14,6 +14,8 @@ import sun.board.product.dto.response.list.PageResult;
 import sun.board.product.dto.response.list.ProductListItemResponse;
 import sun.board.product.dto.response.list.ProductOptionRow;
 import sun.board.product.dto.response.list.ProductRow;
+import sun.board.product.dto.response.listv2.ProductListQuery;
+import sun.board.product.dto.response.listv2.ProductRowV2;
 import sun.board.product.entity.Product;
 import sun.board.product.entity.ProductOption;
 import sun.board.product.entity.enums.OptionStatus;
@@ -35,6 +37,32 @@ public class ProductService {
     private final ProductOptionRepository productOptionRepository;
     private final ProductMapper productMapper;
 
+
+    // 간단한 페이지 응답용 DTO (원하시면 record로 바꿔도 됩니다)
+    public static class PageResultV2<T> {
+        private final List<T> content;
+        private final int totalCount;
+
+        public PageResultV2(List<T> content, int totalCount) {
+            this.content = content;
+            this.totalCount = totalCount;
+        }
+
+        public List<T> getContent() { return content; }
+        public int getTotalCount() { return totalCount; }
+    }
+
+
+    public PageResultV2<ProductRowV2> getProductPage(ProductListQuery query) {
+        List<ProductRowV2> rows = productMapper.findProductPageOneShot(query);
+
+        int total = 0;
+        if (!rows.isEmpty() && rows.get(0).getTotalCount() != null) {
+            total = rows.get(0).getTotalCount(); // 한방쿼리에서 모든 행에 동일 total_count 부여
+        }
+
+        return new PageResultV2<>(rows, total);
+    }
 
     /**
      * 상품 검색 페이지

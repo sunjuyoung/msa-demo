@@ -110,4 +110,117 @@
         ORDER BY po.product_id ASC, po.color ASC, po.size ASC
     </select>
 
+
+
+
+
+
+    <!-- Product + Options 매핑 -->
+    <resultMap id="ProductWithOptionsMap" type="sun.board.product.dto.response.listv2.ProductRowV2">
+        <id     property="productId"  column="product_id"/>
+        <result property="name"        column="name"/>
+        <result property="description" column="description"/>
+        <result property="price"       column="price"/>
+        <result property="category"    column="category"/>
+        <result property="createdAt"   column="created_at"/>
+        <result property="totalCount"  column="total_count"/>
+
+        <!-- 옵션 컬렉션 -->
+        <collection property="options" ofType="sun.board.product.dto.response.listv2.ProductOptionRowV2">
+            <result property="color" column="opt_color"/>
+            <result property="size"  column="opt_size"/>
+        </collection>
+    </resultMap>
+
+
+
+    <!-- 한방 조회: 필터 + 정렬 + 페이징 + 총건수 + 옵션 포함 -->
+    <select id="findProductPageOneShot" resultMap="ProductWithOptionsMap">
+        WITH
+        base AS (
+        SELECT p.id, p.name, p.description, p.price, p.category, p.created_at
+        FROM product p
+        <trim prefix="WHERE" prefixOverrides="AND|OR">
+            <if test="name != null and name != ''">
+                AND p.name LIKE CONCAT('%', #{name}, '%')
+            </if>
+            <if test="category != null and category != ''">
+                AND p.category = #{category}
+            </if>
+            <if test="minPrice != null">
+                AND p.price &gt;= #{minPrice}
+            </if>
+            <if test="maxPrice != null">
+                AND p.price &lt;= #{maxPrice}
+            </if>
+
+            <!-- 옵션 필터: colors/sizes가 있을 때만 존재 검사 -->
+            <if test="(colors != null and !colors.isEmpty()) or (sizes != null and !sizes.isEmpty())">
+                AND EXISTS (
+                SELECT 1
+                FROM product_option po
+                WHERE po.product_id = p.id
+                <if test="colors != null and !colors.isEmpty()">
+                    AND po.color IN
+                    <foreach collection="colors" item="c" open="(" separator="," close=")">
+                        #{c}
+                    </foreach>
+                </if>
+                <if test="sizes != null and !sizes.isEmpty()">
+                    AND po.size IN
+                    <foreach collection="sizes" item="s" open="(" separator="," close=")">
+                        #{s}
+                    </foreach>
+                </if>
+                )
+            </if>
+        </trim>
+        ),
+        ordered AS (
+        SELECT *
+        FROM base
+        ORDER BY created_at DESC, id DESC
+        ),
+        page AS (
+        SELECT *
+        FROM ordered
+        LIMIT #{size} OFFSET #{offset}
+        ),
+        totals AS (
+        SELECT COUNT(*) AS total_count FROM base
+        )
+        SELECT
+        pg.id          AS product_id,
+        pg.name,
+        pg.description,
+        pg.price,
+        pg.category,
+        pg.created_at,
+        t.total_count,
+        po.color       AS opt_color,
+        po.size        AS opt_size
+        FROM page pg
+        CROSS JOIN totals t
+        LEFT JOIN product_option po
+        ON po.product_id = pg.id
+        <!-- 옵션 목록에도 동일 필터를 반영하려면 아래 주석 해제
+        <if test="colors != null and !colors.isEmpty()">
+          AND po.color IN
+          <foreach collection="colors" item="c" open="(" separator="," close=")">
+            #{c}
+          </foreach>
+        </if>
+        <if test="sizes != null and !sizes.isEmpty()">
+          AND po.size IN
+          <foreach collection="sizes" item="s" open="(" separator="," close=")">
+            #{s}
+          </foreach>
+        </if>
+        -->
+        ORDER BY pg.created_at DESC, pg.id DESC, po.color, po.size
+    </select>
+
+
+
+
 </mapper>

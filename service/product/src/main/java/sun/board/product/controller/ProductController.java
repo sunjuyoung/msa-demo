@@ -1,6 +1,7 @@
 package sun.board.product.controller;
 
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -9,11 +10,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import sun.board.product.dto.ProductUpdateStockDto;
 import sun.board.product.dto.request.ProductCreateRequest;
+import sun.board.product.dto.request.ProductListOneShotRequest;
 import sun.board.product.dto.request.ProductSearchRequest;
 import sun.board.product.dto.response.ProductDetailResponse;
 import sun.board.product.dto.response.ProductResponse;
 import sun.board.product.dto.response.list.PageResult;
 import sun.board.product.dto.response.list.ProductListItemResponse;
+import sun.board.product.dto.response.list.ProductRow;
+import sun.board.product.dto.response.listv2.ProductRowV2;
 import sun.board.product.entity.enums.ProductCategory;
 import sun.board.product.entity.enums.ProductColor;
 import sun.board.product.service.ProductService;
@@ -28,6 +32,18 @@ import java.util.List;
 public class ProductController {
 
     private final ProductService productService;
+
+
+    @GetMapping("/v2/one-shot")
+    public ResponseEntity<List<ProductRowV2>> list(@Valid @ModelAttribute ProductListOneShotRequest req) {
+        var pageResult = productService.getProductPage(req.toQuery());
+        List<ProductRowV2> content = pageResult.getContent();
+        int total = pageResult.getTotalCount();
+
+        return ResponseEntity.ok().body( content );
+    }
+
+
 
 
     @GetMapping
