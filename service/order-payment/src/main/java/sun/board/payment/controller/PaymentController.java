@@ -39,6 +39,9 @@ public class PaymentController {
     public ResponseEntity<ApiResponse<PaymentConfirmResult>> confirmPayment(
             @RequestBody TossPaymentConfirmRequest request) {
 
+        log.info(request.getPaymentKey());
+        log.info(request.getOrderId());
+
         PaymentConfirmCommand paymentConfirmCommand = new PaymentConfirmCommand(
 
                 request.getPaymentKey(),

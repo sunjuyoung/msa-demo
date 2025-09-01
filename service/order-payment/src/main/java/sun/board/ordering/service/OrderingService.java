@@ -1,6 +1,7 @@
 package sun.board.ordering.service;
 
 import lombok.extern.slf4j.Slf4j;
+import net.devh.boot.grpc.client.inject.GrpcClient;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
@@ -14,6 +15,9 @@ import sun.board.ordering.entity.OrderStatus;
 import sun.board.ordering.entity.Ordering;
 import sun.board.ordering.exception.ex.StockInsufficientException;
 import sun.board.ordering.repository.OrderingRepository;
+import sun.board.product.grpc.GetProductRequest;
+import sun.board.product.grpc.GetProductResponse;
+import sun.board.product.grpc.ProductServiceGrpc;
 
 @Slf4j
 @Service
@@ -23,6 +27,9 @@ public class OrderingService {
     private final OrderingRepository orderingRepository;
     private final ProductFeign productFeign;
     private final KafkaTemplate<String, Object> kafkaTemplate;
+
+    @GrpcClient("product-service")
+    private ProductServiceGrpc.ProductServiceBlockingStub productStub;
 
     private final String DECREASE_STOCK_TOPIC = "decrease-stock-topic"; // 카프카 토픽 이름
 
@@ -46,8 +53,16 @@ public class OrderingService {
         Long productId = dto.getProductId();
         //상품 조회
 
+        GetProductRequest request = GetProductRequest.newBuilder()
+                .setProductId(productId)
+                .setColor(dto.getColor())
+                .setSize(dto.getSize())
+                .build();
 
-        ProductDto response = productFeign.getProductById(productId);
+        GetProductResponse response = productStub.getProduct(request);
+
+
+        //ProductDto response = productFeign.getProductById(productId);
 
 //        if(response.getStockQuantity() < quantity){
 //            throw new StockInsufficientException("재고가 부족합니다.");
@@ -75,12 +90,12 @@ public class OrderingService {
 
         OrderViewResponseDTO orderViewResponseDTO = new OrderViewResponseDTO();
         orderViewResponseDTO.setOrderId(saved.getId());
-        orderViewResponseDTO.setProductId(response.getProductId());
+        orderViewResponseDTO.setProductId(response.getProduct().getId());
         orderViewResponseDTO.setAmount(dto.getTotalPrice());
         orderViewResponseDTO.setQuantity(dto.getProductCount());
         orderViewResponseDTO.setColor(dto.getColor());
         orderViewResponseDTO.setSize(dto.getSize());
-        orderViewResponseDTO.setOrderName(response.getName());
+        orderViewResponseDTO.setOrderName(response.getProduct().getName());
 
         return orderViewResponseDTO;
     }

@@ -14,6 +14,7 @@ import sun.board.payment.entity.PaymentEvent;
 import sun.board.payment.entity.PaymentOrder;
 import sun.board.payment.entity.enums.PaymentOrderStatus;
 import sun.board.payment.repository.PaymentEventRepository;
+import sun.board.payment.repository.PaymentOrderRepository;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -26,13 +27,16 @@ public class CheckoutService {
 
     private final OrderingRepository orderRepository;
     private final PaymentEventRepository paymentEventRepository;
+    private final PaymentOrderRepository paymentOrderRepository;
     private static final String TEST_ORDER_KEY = "_testNumber";
     private final ProductFeign productFeign;
 
 
+    @Transactional
     public Long checkout(CheckoutRequest request){
         Long orderId = request.getOrderId();
         Long productId = request.getProductId();
+        log.info("checkout orderId={}, productId={}", orderId, productId);
 
         //주문, 상품들 조회
         Ordering ordering =
@@ -43,9 +47,11 @@ public class CheckoutService {
 
         PaymentEvent paymentEvent = createPaymentEvent(ordering, request,product);
 
+
         //CascadeType.ALL로 인해 PaymentEvent 저장시 PaymentOrder도 같이 저장
         PaymentEvent newPaymentEvent = paymentEventRepository.save(paymentEvent);
 
+        log.info("paymentEvent={}", paymentEvent.getOrderId());
         return newPaymentEvent.getId();
 
     }
@@ -72,6 +78,7 @@ public class CheckoutService {
 
         //PaymentOrder에 PaymentEvent 설정
         paymentOrder.setPaymentEvent(paymentEvent);
+        //paymentEvent.addPaymentOrder(paymentOrder);
 
 
         //PaymentEvent에 PaymentOrder 추가
