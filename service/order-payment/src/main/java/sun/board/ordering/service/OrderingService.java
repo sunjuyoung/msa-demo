@@ -7,10 +7,7 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
-import sun.board.ordering.dto.OrderCreateDto;
-import sun.board.ordering.dto.OrderViewResponseDTO;
-import sun.board.ordering.dto.ProductDto;
-import sun.board.ordering.dto.ProductUpdateStockDto;
+import sun.board.ordering.dto.*;
 import sun.board.ordering.entity.OrderStatus;
 import sun.board.ordering.entity.Ordering;
 import sun.board.ordering.exception.ex.StockInsufficientException;
@@ -18,6 +15,8 @@ import sun.board.ordering.repository.OrderingRepository;
 import sun.board.product.grpc.GetProductRequest;
 import sun.board.product.grpc.GetProductResponse;
 import sun.board.product.grpc.ProductServiceGrpc;
+
+import java.util.List;
 
 @Slf4j
 @Service
@@ -51,25 +50,21 @@ public class OrderingService {
 
         int quantity = dto.getProductCount();
         Long productId = dto.getProductId();
-        //상품 조회
+        Long productOptionId = dto.getProductOptionId();
 
+        //상품 조회
         GetProductRequest request = GetProductRequest.newBuilder()
                 .setProductId(productId)
-                .setColor(dto.getColor())
-                .setSize(dto.getSize())
+                .setProductOptionId(productOptionId.intValue())
                 .build();
 
         GetProductResponse response = productStub.getProduct(request);
 
-
-        //ProductDto response = productFeign.getProductById(productId);
-
-//        if(response.getStockQuantity() < quantity){
-//            throw new StockInsufficientException("재고가 부족합니다.");
-//        }
+        //주문 생성 PENDING
         Ordering ordering = Ordering.builder()
                 .productId(dto.getProductId())
-                .quantity(dto.getProductCount())
+                .productOptionId(productOptionId)
+                .quantity(quantity)
                 .memberId(dto.getUserId())
                 .orderStatus(OrderStatus.PENDING)
                 .totalPrice(dto.getTotalPrice())
@@ -77,27 +72,46 @@ public class OrderingService {
 
 
         Ordering saved = orderingRepository.save(ordering);
-        // 재고 감소 로직
-//        ProductUpdateStockDto productUpdateStockDto
-//                = ProductUpdateStockDto.productUpdateStockDto(
-//                        dto.getProductId(),
-//                        dto.getProductCount(),
-//                        saved.getId()
-        //);
 
-        // 카프카에 재고 감소 요청 전송(비동기 방식)
-       // kafkaTemplate.send(DECREASE_STOCK_TOPIC,String.valueOf(productId), productUpdateStockDto);
+        // 재고 감소 로직 -> 결제 서비스로 이동
 
-        OrderViewResponseDTO orderViewResponseDTO = new OrderViewResponseDTO();
-        orderViewResponseDTO.setOrderId(saved.getId());
-        orderViewResponseDTO.setProductId(response.getProduct().getId());
-        orderViewResponseDTO.setAmount(dto.getTotalPrice());
-        orderViewResponseDTO.setQuantity(dto.getProductCount());
-        orderViewResponseDTO.setColor(dto.getColor());
-        orderViewResponseDTO.setSize(dto.getSize());
-        orderViewResponseDTO.setOrderName(response.getProduct().getName());
+        OrderViewResponseDTO orderViewResponseDTO = OrderViewResponseDTO.create(
+                productId,
+                saved.getId(),
+                dto.getTotalPrice(),
+                response.getProduct().getName(),
+                response.getProduct().getColor(),
+                (int) response.getProduct().getSize(),
+                quantity,
+                productOptionId
+        );
 
         return orderViewResponseDTO;
+    }
+
+    // userId로 주문 조회
+    public OrderHistoryResponse getOrdersByUser(Long userId) {
+        List<Ordering> orderingList = orderingRepository.findByMemberId(userId);
+
+        OrderHistoryResponse orderHistoryResponse = new OrderHistoryResponse();
+
+        orderingList.forEach(o -> {
+            GetProductRequest request = GetProductRequest.newBuilder()
+                    .setProductId(o.getProductId())
+                    .setProductOptionId(o.getProductOptionId().intValue())
+                    .build();
+            GetProductResponse productResponse = productStub.getProduct(request);
+            OrderItemDto orderItemDto = OrderItemDto.create(productResponse, o.getProductOptionId());
+            OrderSummaryDto orderSummaryDto = OrderSummaryDto.create(o);
+            orderSummaryDto.getItems().add(orderItemDto);
+            orderHistoryResponse.getOrders().add(orderSummaryDto);
+        });
+
+        return orderHistoryResponse;
+
+    }
+
+    public void cancelOrder(Long orderId) {
     }
 
 //    @Transactional

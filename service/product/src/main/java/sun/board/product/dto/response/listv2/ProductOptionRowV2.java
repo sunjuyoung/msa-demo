@@ -10,4 +10,5 @@ import lombok.*;
 public class ProductOptionRowV2 {
     private String color;
     private String size;
+    private Long productOptionId;
 }

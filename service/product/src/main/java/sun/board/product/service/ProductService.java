@@ -38,7 +38,7 @@ public class ProductService {
     private final ProductMapper productMapper;
 
 
-    // 간단한 페이지 응답용 DTO (원하시면 record로 바꿔도 됩니다)
+    // 간단한 페이지 응답용 DTO
     public static class PageResultV2<T> {
         private final List<T> content;
         private final int totalCount;
@@ -253,9 +253,10 @@ public class ProductService {
                         o -> o.getColor().name(),
                         LinkedHashMap::new,
                         Collectors.mapping(
-                                o -> new OptionSizeWithStockDto(o.getSize(), o.getStock()),
+                                o -> new OptionSizeWithStockDto(o.getSize(), o.getStock(), o.getId()),
                                 Collectors.toList()
                         )
+
                 ));
 
         // DTO 변환

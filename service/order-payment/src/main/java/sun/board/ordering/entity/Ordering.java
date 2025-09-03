@@ -25,6 +25,7 @@ public class Ordering extends BaseTime {
     private Long memberId;
 
     private Long productId;
+    private Long productOptionId;
 
     @Column(nullable = false)
     private Integer quantity;

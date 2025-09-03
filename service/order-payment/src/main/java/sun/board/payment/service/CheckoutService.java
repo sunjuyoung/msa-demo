@@ -3,6 +3,7 @@ package sun.board.payment.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.devh.boot.grpc.client.inject.GrpcClient;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import sun.board.ordering.dto.ProductDto;
@@ -15,6 +16,7 @@ import sun.board.payment.entity.PaymentOrder;
 import sun.board.payment.entity.enums.PaymentOrderStatus;
 import sun.board.payment.repository.PaymentEventRepository;
 import sun.board.payment.repository.PaymentOrderRepository;
+import sun.board.product.grpc.ProductServiceGrpc;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -31,6 +33,8 @@ public class CheckoutService {
     private static final String TEST_ORDER_KEY = "_testNumber";
     private final ProductFeign productFeign;
 
+    @GrpcClient("product-service")
+    private ProductServiceGrpc.ProductServiceBlockingStub productStub;
 
     @Transactional
     public Long checkout(CheckoutRequest request){

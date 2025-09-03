@@ -18,7 +18,7 @@ public interface ProductMapper {
 
     int countProducts(ProductSearchRequest searchRequest);
 
-    // 1. 한번에 다 처리 (비효율적, 옵션이 많아지면 더 느려짐)
+
     List<ProductRowV2> findProductPageOneShot(ProductListQuery query);
 
     // 2-1. 페이지 대상이 되는 상품 id만 먼저 가져옴 (상품 단위 페이징 핵심)

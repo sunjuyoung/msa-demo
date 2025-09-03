@@ -10,4 +10,5 @@ import lombok.*;
 public class OptionSizeWithStockDto {
     private Integer size;
     private Integer stock;
+    private Long productOptionId;
 }

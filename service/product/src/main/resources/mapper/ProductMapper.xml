@@ -127,6 +127,7 @@
 
         <!-- 옵션 컬렉션 -->
         <collection property="options" ofType="sun.board.product.dto.response.listv2.ProductOptionRowV2">
+            <id     property="productOptionId" column="product_option_id"/>
             <result property="color" column="opt_color"/>
             <result property="size"  column="opt_size"/>
         </collection>
@@ -198,7 +199,8 @@
         pg.created_at,
         t.total_count,
         po.color       AS opt_color,
-        po.size        AS opt_size
+        po.size        AS opt_size,
+        po.id          AS product_option_id
         FROM page pg
         CROSS JOIN totals t
         LEFT JOIN product_option po

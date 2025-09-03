@@ -23,17 +23,15 @@ public class ProductGrpcService  extends ProductServiceGrpc.ProductServiceImplBa
     @Override
     public void getProduct(GetProductRequest request, StreamObserver<GetProductResponse> responseObserver) {
 
-        long productId = request.getProductId();
-        String color = request.getColor();
-        long size = request.getSize();
+        Long productId = request.getProductId();
+        Long productOptionId = request.getProductOptionId();
 
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new EntityNotFoundException("해당 상품이 존재하지 않습니다."));
 
-        ProductColor productColor = ProductColor.valueOf(color);
 
-        ProductOption productOption =
-                productOptionRepository.findByProductIdAndColorAndSize(productId, productColor, (int) size);
+        ProductOption productOption = productOptionRepository.findById(productOptionId)
+                .orElseThrow(() -> new EntityNotFoundException("해당 상품 옵션이 존재하지 않습니다."));
 
 
         sun.board.product.grpc.Product productGrpc = sun.board.product.grpc.Product.newBuilder()

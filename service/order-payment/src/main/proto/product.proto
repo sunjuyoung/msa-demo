@@ -14,8 +14,7 @@ service ProductService {
 
 message GetProductRequest {
   int64 product_id = 1;
-  string color = 2;
-  int64 size = 3;
+  int64 product_option_id = 2;
 }
 
 message GetProductResponse {
