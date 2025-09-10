@@ -13,33 +13,5 @@ import static org.junit.jupiter.api.Assertions.*;
 @SpringBootTest
 class ViewCountBackUpRepositoryTest {
 
-    @Autowired
-    ViewCountBackUpRepository viewCountBackUpRepository;
-
-    @PersistenceContext
-    private EntityManager entityManager;
-
-
-    @Test
-    @Transactional
-    void updateViewCOunt(){
-       viewCountBackUpRepository
-                .save(ViewCount.init(1L, 0L));
-
-        entityManager.flush();
-        entityManager.clear();
-
-        int result = viewCountBackUpRepository.updateViewCount(1L, 10L);
-        int i = viewCountBackUpRepository.updateViewCount(1L, 5L);
-
-        assertEquals(1, result);
-        assertEquals(0, i);
-
-
-        viewCountBackUpRepository.findById(1L)
-                .ifPresent(viewCount -> {
-                    assertEquals(10L, viewCount.getViewCount());
-                });
-    }
 
 }

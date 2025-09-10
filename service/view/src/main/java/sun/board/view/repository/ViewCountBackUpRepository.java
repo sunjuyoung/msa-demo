@@ -14,7 +14,7 @@ public interface ViewCountBackUpRepository extends JpaRepository<ViewCount, Long
 
 
     @Query(
-            value = "update view_count set view_count = :viewCount" +
+            value = "update view_count set view_counts = :viewCount" +
                     "  where target_id = :articleId and target_type = :targetType and view_counts < :viewCount",
             nativeQuery = true
     )
@@ -26,14 +26,14 @@ public interface ViewCountBackUpRepository extends JpaRepository<ViewCount, Long
     );
 
     @Query(
-            value = "update view_count set view_count = :viewCount" +
-                    "  where target_id = :productId and target_type = :targetType and view_counts < :viewCount",
+            value = "update view_count set view_counts = view_counts + :viewCount" +
+                    "  where target_id = :productOptionId and target_type = :targetType ",
             nativeQuery = true
     )
     @Modifying
     int updateProductViewCount(
-            @Param("productId") Long productId,
-            @Param("targetType") TargetType targetType,
+            @Param("productOptionId") Long productOptionId,
+            @Param("targetType") String targetType,
             @Param("viewCount") Long viewCount
     );
 }

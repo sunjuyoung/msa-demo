@@ -50,24 +50,24 @@ public class MessageRelay {
     }
 
     //outbox데이터베이스 남아있는 미전송 이벤트 10초마다 주기적으로 polling 후 전송
-    @Scheduled(
-            fixedDelay = 10,
-            initialDelay = 5,
-            timeUnit = TimeUnit.SECONDS,
-            scheduler = "messageRelaypublishPendingExecutor" //MessageRelayConfig.java의 Executor Bean 싱글스레드
-    )
-    public void publishPendingEvent() {
-        AssignedShard assignedShard = messageRelayCoordinator.assignShards();
-        log.info("[MessageRelay.publishPendingEvent] assignedShard size={}", assignedShard.getShards().size());
-        for (Long shard : assignedShard.getShards()) {
-            List<Outbox> outboxes = outboxRepository.findAllByShardKeyAndCreatedAtLessThanEqualOrderByCreatedAtAsc(
-                    shard,
-                    LocalDateTime.now().minusSeconds(10),
-                    Pageable.ofSize(100)
-            );
-            for (Outbox outbox : outboxes) {
-                publishEvent(outbox);
-            }
-        }
-    }
+//    @Scheduled(
+//            fixedDelay = 10,
+//            initialDelay = 5,
+//            timeUnit = TimeUnit.SECONDS,
+//            scheduler = "messageRelaypublishPendingExecutor" //MessageRelayConfig.java의 Executor Bean 싱글스레드
+//    )
+//    public void publishPendingEvent() {
+//        AssignedShard assignedShard = messageRelayCoordinator.assignShards();
+//        log.info("[MessageRelay.publishPendingEvent] assignedShard size={}", assignedShard.getShards().size());
+//        for (Long shard : assignedShard.getShards()) {
+//            List<Outbox> outboxes = outboxRepository.findAllByShardKeyAndCreatedAtLessThanEqualOrderByCreatedAtAsc(
+//                    shard,
+//                    LocalDateTime.now().minusSeconds(10),
+//                    Pageable.ofSize(100)
+//            );
+//            for (Outbox outbox : outboxes) {
+//                publishEvent(outbox);
+//            }
+//        }
+//    }
 }

@@ -8,6 +8,7 @@ import sun.board.view.repository.ArticleViewDistributedLockRepository;
 @Service
 @RequiredArgsConstructor
 public class ArticleViewService {
+
     private final ArticleViewCountBackupProcessor articleViewCountBackupProcessor;
     private final ArticleViewCountRepository articleViewCountRepository;
 

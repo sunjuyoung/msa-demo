@@ -8,6 +8,7 @@ import sun.board.product.entity.Product;
 import sun.board.product.entity.ProductOption;
 import sun.board.product.entity.enums.OptionStatus;
 import sun.board.product.entity.enums.ProductColor;
+import sun.board.product.grpc.response.ProductGrpcResponse;
 import sun.board.product.repository.ProductOptionRepository;
 import sun.board.product.repository.ProductRepository;
 
@@ -50,5 +51,31 @@ public class ProductGrpcService  extends ProductServiceGrpc.ProductServiceImplBa
 
         responseObserver.onNext(response);
         responseObserver.onCompleted();
+    }
+
+    @Override
+    public void getProductByProductOptionId(GetProductByProductOptionIdRequest request, StreamObserver<GetProductResponse> responseObserver) {
+        Long productOptionId = request.getProductOptionId();
+
+        ProductGrpcResponse productOption = productOptionRepository.findProductOptionWithProduct(productOptionId);
+
+        sun.board.product.grpc.Product productGrpc = sun.board.product.grpc.Product.newBuilder()
+                .setId(productOption.getId())
+                .setName(productOption.getName())
+                .setCategory(productOption.getCategory())
+                .setPrice(productOption.getPrice().intValue())
+                .setColor(productOption.getColor())
+                .setSize(productOption.getSize())
+                .setStock(productOption.getStock())
+                .setDescription(productOption.getDescription())
+                .build();
+
+        GetProductResponse response = GetProductResponse.newBuilder()
+                .setProduct(productGrpc)
+                .build();
+
+        responseObserver.onNext(response);
+        responseObserver.onCompleted();
+
     }
 }

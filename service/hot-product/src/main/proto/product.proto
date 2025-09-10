@@ -13,11 +13,9 @@ service ProductService {
   rpc GetProductByProductOptionId (GetProductByProductOptionIdRequest) returns (GetProductResponse);
 
 }
-
 message GetProductByProductOptionIdRequest {
   int64 product_option_id = 1;
 }
-
 message GetProductRequest {
   int64 product_id = 1;
   int64 product_option_id = 2;

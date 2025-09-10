@@ -13,18 +13,25 @@ public class ProductViewCountRepository{
     private  static final String KEY_FORMAT = "view::product::%d::view_count";
 
 
-public Long read(Long productId){
-    String result = redisTemplate.opsForValue().get(generateKey(productId));
+public Long read(Long productOptionId){
+    String result = redisTemplate.opsForValue().get(generateKey(productOptionId));
     return result == null ? 0 : Long.valueOf(result);
 }
 
 
-public Long increase(Long productId){
-    return  redisTemplate.opsForValue().increment(generateKey(productId));
+public Long increase(Long productOptionId){
+    return  redisTemplate.opsForValue().increment(generateKey(productOptionId));
 }
 
-private String generateKey(Long productId){
-    return KEY_FORMAT.formatted(productId);
+private String generateKey(Long productOptionId){
+    return KEY_FORMAT.formatted(productOptionId);
 }
+
+//0 으로 초기화
+public void init(Long productOptionId) {
+    redisTemplate.opsForValue().set(generateKey(productOptionId), "0");
+}
+
+
 
 }
