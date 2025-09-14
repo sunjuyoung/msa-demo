@@ -46,62 +46,27 @@
 - 게시글 좋아요 기능
 - 사용자별 좋아요 상태 관리
 
-### 8. **Hot Article Service** (`service/hot-article`)
+### 8. **Hot product Service** (`service/hot-product`)
 
-- 인기 게시글 선정 알고리즘
+- 인기 상품 선정 알고리즘
 - 이벤트 기반 점수 계산
-- 일별 인기글 랭킹 제공
-
-### 9. **Article Read Service** (`service/article-read`)
-
-- 게시글 읽기 전용 서비스
-- 캐시를 통한 성능 최적화
-- 이벤트 소비를 통한 데이터 동기화
 
 
-### 10. **Product Service** (`service/product`)
+### 9. **Product Service** (`service/product`)
 
 - 상품 정보 관리
 - 상품 목록 및 상세 조회
 - 재고 관리
 
-### 11 **Ordering Service** (`service/ordering`)
+### 10. **Order-payment Service** (`service/ordering`)
 
 - 주문 생성 및 관리
 - 주문 상태 추적
 - 주문 이력 관리
+결제 처리 및 관리
 
+  
 
-
-### 12. **Payment Service** (`service/payment`)
-
-- 결제 처리 및 관리
-- 결제 이력 추적
-
-## 🔧 공통 라이브러리 (Common)
-
-### 1. **Event System** (`common/event`)
-
-- 서비스 간 이벤트 통신
-- JSON 직렬화/역직렬화 지원
-- 이벤트 타입별 페이로드 관리
-
-### 2. **Outbox Message Relay** (`common/outbox-message-relay`)
-
-- 메시지 전송의 신뢰성 보장
-- 샤딩 기반 메시지 분산 처리
-- 장애 복구 및 재시도 메커니즘
-
-### 3. **Snowflake ID Generator** (`common/snowflake`)
-
-- 분산 환경에서의 고유 ID 생성
-- 64비트 ID 구조 (타임스탬프 + 노드ID + 시퀀스)
-- UUID 대비 성능 최적화
-
-### 4. **Data Serializer** (`common/data-serializer`)
-
-- 객체 직렬화/역직렬화 유틸리티
-- JSON 변환 지원
 
 ## 🛠️ 기술 스택
 
@@ -154,14 +119,6 @@
 
 시스템은 이벤트 기반 아키텍처를 사용하여 서비스 간 느슨한 결합을 구현합니다:
 
-### 주요 이벤트 타입
-
-- `ARTICLE_CREATED` - 게시글 생성
-- `ARTICLE_UPDATED` - 게시글 수정
-- `ARTICLE_DELETED` - 게시글 삭제
-- `COMMENT_CREATED` - 댓글 생성
-- `LIKE_ADDED` - 좋아요 추가
-- `VIEW_COUNTED` - 조회수 증가
 
 ### 이벤트 처리 흐름
 
@@ -176,11 +133,11 @@
 ### 주요 엔티티
 
 - **Member**: 사용자 정보 및 권한
-- **Article**: 게시글 내용 및 메타데이터
-- **Comment**: 댓글 및 계층 구조
+- **product**: 상품 정보
+- **order**: 상품 주문
 - **View**: 조회 이력 및 통계
 - **Like**: 좋아요 상태
-- **HotArticle**: 인기글 랭킹
+- **HotProduct**: 인기상품
 
 ## 🔒 보안
 
@@ -194,3 +151,7 @@
 - **비동기 처리**: 이벤트 기반 비동기 메시지 처리
 - **데이터베이스 최적화**: JPA 인덱싱 및 쿼리 최적화
 
+## 🔄 서비스 간 통신
+
+- **Kafka**: 비동기식 이벤트 전달 및 처리
+- **gRPC**: 고성능 바이너리 프로토콜 기반 → REST 대비 빠른 속도와 낮은 네트워크 비용

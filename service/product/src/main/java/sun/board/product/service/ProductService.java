@@ -3,8 +3,12 @@ package sun.board.product.service;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.devh.boot.grpc.client.inject.GrpcClient;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import sun.board.like.grpc.LikeCountsRequest;
+import sun.board.like.grpc.LikeCountsResponse;
+import sun.board.like.grpc.LikeQueryServiceGrpc;
 import sun.board.product.dto.ProductUpdateStockDto;
 import sun.board.product.dto.request.ProductCreateRequest;
 import sun.board.product.dto.request.ProductOptionCreateRequest;
@@ -37,32 +41,57 @@ public class ProductService {
     private final ProductOptionRepository productOptionRepository;
     private final ProductMapper productMapper;
 
+    @GrpcClient("like-service")
+    private LikeQueryServiceGrpc.LikeQueryServiceBlockingStub likeStub;
+
 
     // 간단한 페이지 응답용 DTO
     public static class PageResultV2<T> {
         private final List<T> content;
         private final int totalCount;
+        private final Map<Long,Long> likeCounts;
 
-        public PageResultV2(List<T> content, int totalCount) {
+        public PageResultV2(List<T> content, int totalCount, Map<Long, Long> likeCounts) {
             this.content = content;
             this.totalCount = totalCount;
+            this.likeCounts = likeCounts;
         }
 
         public List<T> getContent() { return content; }
         public int getTotalCount() { return totalCount; }
+        public Map<Long, Long> getLikeCounts() { return likeCounts; }
     }
 
 
     public PageResultV2<ProductRowV2> getProductPage(ProductListQuery query) {
         List<ProductRowV2> rows = productMapper.findProductPageOneShot(query);
 
-        int total = 0;
-        if (!rows.isEmpty() && rows.get(0).getTotalCount() != null) {
-            total = rows.get(0).getTotalCount(); // 한방쿼리에서 모든 행에 동일 total_count 부여
-        }
 
-        return new PageResultV2<>(rows, total);
+        // 좋아요 수 일괄 조회
+        List<Long> productIds = rows.stream()
+                .map(ProductRowV2::getProductId)
+                .collect(Collectors.toList());
+
+
+        Map<Long, Long> countsMap = likeStub.getLikeCounts(
+                LikeCountsRequest.newBuilder()
+                        .addAllTargetIds(productIds)
+                        .build()
+        ).getCountsMap();
+
+
+
+
+        int total = 0;
+            if (!rows.isEmpty() && rows.get(0).getTotalCount() != null) {
+                total = rows.get(0).getTotalCount(); // 한방쿼리에서 모든 행에 동일 total_count 부여
+            }
+
+            return new PageResultV2<>(rows, total,countsMap);
+
     }
+
+
 
     /**
      * 상품 검색 페이지

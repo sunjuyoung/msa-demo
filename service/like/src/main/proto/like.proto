@@ -1,0 +1,42 @@
+syntax = "proto3";
+
+package sun.board.like;
+
+option java_multiple_files = true;
+option java_package = "sun.board.like.grpc";
+option java_outer_classname = "LikeProto";
+// 앱 전반에서 쓰는 TargetType과 일치시켜 주세요.
+enum TargetType {
+  TARGET_TYPE_UNSPECIFIED = 0;
+  PRODUCT = 1;
+  ARTICLE = 2;
+  // 필요 타입 추가
+}
+
+// 여러 타깃의 찜 개수 조회 (집계 테이블 기반)
+message LikeCountsRequest {
+  TargetType target_type = 1;       // 현재 LikeCounts가 targetId만 가지지만 요청 필터 일관성 위해 포함
+  repeated int64 target_ids = 2;
+}
+message LikeCountsResponse {
+  map<int64, int64> counts = 1;     // targetId -> likeCount
+}
+
+// "내가 찜했는지" 배치 조회 (Likes 테이블 기반)
+message MyLikesRequest {
+  int64 user_id = 1;
+  TargetType target_type = 2;
+  repeated int64 target_ids = 3;
+}
+message MyLikesResponse {
+  message Item {
+    int64 target_id = 1;
+    bool liked = 2;
+  }
+  repeated Item results = 1;
+}
+
+service LikeQueryService {
+  rpc GetLikeCounts(LikeCountsRequest) returns (LikeCountsResponse);
+  rpc GetMyLikes(MyLikesRequest) returns (MyLikesResponse);
+}

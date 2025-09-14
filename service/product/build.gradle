@@ -17,6 +17,7 @@ dependencies {
     //grpc
 // https://mvnrepository.com/artifact/net.devh/grpc-server-spring-boot-starter
     implementation 'net.devh:grpc-server-spring-boot-starter:3.1.0.RELEASE'
+    implementation 'net.devh:grpc-client-spring-boot-starter:3.1.0.RELEASE'
 
     implementation 'io.grpc:grpc-protobuf:1.66.0'
     implementation 'io.grpc:grpc-stub:1.66.0'

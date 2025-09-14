@@ -4,7 +4,9 @@ import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Getter
 @Setter
@@ -21,6 +23,9 @@ public class ProductRowV2 {
 
     // 한방쿼리에서 CROSS JOIN totals 로 들어오는 값
     private Integer totalCount;
+
+    @Builder.Default
+    private Map<Long, Long> likeCounts = new HashMap<>();
 
     // resultMap <collection> 으로 수집됨
     @Builder.Default
